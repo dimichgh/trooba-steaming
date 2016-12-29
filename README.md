@@ -1,6 +1,21 @@
 # trooba-streaming
 
-The module provides nodejs streaming API for trooba pipeline.
+[![codecov](https://codecov.io/gh/trooba/trooba-streaming/branch/master/graph/badge.svg)](https://codecov.io/gh/trooba/trooba-streaming)
+[![Build Status](https://travis-ci.org/trooba/trooba-streaming.svg?branch=master)](https://travis-ci.org/trooba/trooba-streaming) [![NPM](https://img.shields.io/npm/v/trooba.svg)](https://www.npmjs.com/package/trooba)
+[![Downloads](https://img.shields.io/npm/dm/trooba.svg)](http://npm-stat.com/charts.html?package=trooba)
+[![Known Vulnerabilities](https://snyk.io/test/github/trooba/trooba-streaming/badge.svg)](https://snyk.io/test/github/trooba/trooba-streaming)
+
+[Trooba](https://github.com/trooba/trooba) framework being isomorphic does not use nodejs native streaming.
+
+This module provides nodejs streaming API for trooba pipeline.
+
+## Get Involved
+
+- **Contributing**: Pull requests are welcome!
+    - Read [`CONTRIBUTING.md`](.github/CONTRIBUTING.md) and check out our [bite-sized](https://github.com/trooba/trooba-streaming/issues?q=is%3Aissue+is%3Aopen+label%3Adifficulty%3Abite-sized) and [help-wanted](https://github.com/trooba/trooba-streaming/issues?q=is%3Aissue+is%3Aopen+label%3Astatus%3Ahelp-wanted) issues
+    - Submit github issues for any feature enhancements, bugs or documentation problems
+- **Support**: Join our [gitter chat](https://gitter.im/trooba) to ask questions to get support from the maintainers and other Trooba developers
+    - Questions/comments can also be posted as [github issues](https://github.com/trooba/trooba-streaming/issues)
 
 ## Install
 
@@ -20,9 +35,9 @@ pipe.use(function echo(pipe) {
     var streamResponse;
     pipe.on('request', request => {
         _request = request;
-        streamResponse = pipe.streamResponse({
+        streamResponse = new TroobaWritableStream(pipe.streamResponse({
             statusCode: 200
-        });
+        }));
     });
     pipe.on('request:data', data => {
         _request.forEach(data => {
@@ -33,10 +48,13 @@ pipe.use(function echo(pipe) {
 })
 .build();
 
-var request = pipe.create().request(['foo', 'bar']);
-var call = new ClientReadableStream(request);
+var stream = new TroobaReadableStream(pipe.create().request(['foo', 'bar']));
 
-call.on('error', err => {
+stream
+.on('response', response => {
+    console.log('Response metadata:', response);
+})
+.on('error', err => {
     console.log('Error:', err);
 })
 .on('data', data => {
@@ -51,68 +69,72 @@ call.on('error', err => {
 ```js
 var Trooba = require('trooba');
 
-var pipe = new Trooba();
-pipe.use(function echo(pipe) {
-    pipe.on('request', request => {
-        // mock connection signal
-        pipe.send({
-            type: 'connection',
-            flow: 2
-        });
-    });
-    var response = [];
-    pipe.on('request:data', data => {
-        if (data) {
+var pipe = new Trooba()
+.use(function echo(pipe) {
+    pipe.on('request', (request, next) => {
+        var response = [];
+
+        new TroobaReadableStream(pipe)
+        .on('data', data => {
             response.push(data);
-            return;
-        }
-        pipe.respond(data);
+        })
+        .on('end', () => {
+            pipe.respond(response);
+        });
+
+        next();
     });
 })
 .build();
 
-var request = pipe.create().request(function (err, response) {
-    console.log('Response:', err || response);
-});
-var call = new ClientWritableStream(request);
+var request = pipe.create().streamRequest('r1');
+var stream = new TroobaWritableStream(request);
 
-call.write('foo');
-call.write('bar');
-call.end();
+stream.on('response', response => {
+    console.log('Response:', response);
+    done();
+});
+stream.write('foo');
+stream.write('bar');
+stream.end();
 ```
 
 ### stream/stream use-case
 ```js
 var Trooba = require('trooba');
 
-var pipe = new Trooba();
-pipe.use(function echo(pipe) {
-    var streamResponse;
-    pipe.on('request', request => {
-        streamResponse = pipe.streamResponse({
-            statusCode: 200
+var pipe = new Trooba()
+.use(function echo(pipe) {
+    pipe.on('request', (request, next) => {
+        var stream = new TroobaDuplexStream(pipe.streamResponse(request))
+        .on('data', data => {
+            stream.write(data);
+        })
+        .on('end', () => {
+            stream.end();
         });
-    });
-    pipe.on('request:data', data => {
-        streamResponse.write(data);
+
+        next();
     });
 })
 .build();
 
-var request = pipe.create().request();
-var call = new ClientDuplexStream(request);
+var order = [];
 
-call.on('error', err => {
-    console.log('Error:', err);
-})
-.on('data', data => {
-    console.log('Data:', data);
-})
-.on('end', () => {
-    console.log('end of stream');
+var stream = new TroobaWritableStream(pipe.create().streamRequest('r1'));
+
+stream
+.on('error', done)
+.on('response:data', data => {
+    if (data) {
+        order.push(data);
+        return;
+    }
+    console.log('Data received:', order);
+    done();
 });
 
-call.write('foo');
-call.write('bar');
-call.end();
+stream.write('foo');
+stream.write('bar');
+stream.end();
 ```
