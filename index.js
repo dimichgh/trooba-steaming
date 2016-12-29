@@ -26,6 +26,12 @@ function _initWrite(pipeStream) {
     this.once('finish', () => {
         this._requestStream.end();
     });
+
+    if (pipeStream.flow === 2) { // RESPONSE flow
+        this.on('error', err => {
+            (pipeStream.point || pipeStream).throw(err);
+        });
+    }
 }
 
 function _write(message, encoding, callback) {

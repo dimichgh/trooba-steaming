@@ -245,7 +245,7 @@ describe(__filename, function () {
         stream.end();
     });
 
-    it('should get error during stream/response flow, at chunking', function (next) {
+    it('should get error during stream/response flow, at chunking phase', function (next) {
         var Trooba = require('trooba');
 
         var pipe = new Trooba()
@@ -287,6 +287,42 @@ describe(__filename, function () {
                 stream.write('foo');
                 setTimeout(function () {
                     pipe.throw(new Error('Test error'));
+                }, 50);
+                next();
+            });
+        })
+        .build();
+
+        var order = [];
+
+        pipe
+        .create()
+        .request('r1')
+        .on('error', err => {
+            Assert.equal('Test error', err.message);
+            Assert.deepEqual(['foo'], order);
+            done();
+        })
+        .on('response:data', (data, next) => {
+            if (data) {
+                order.push(data);
+                return next();
+            }
+            done(new Error('Should not happen'));
+        });
+    });
+
+    it('should get error from response stream', function (done) {
+        var Trooba = require('trooba');
+
+        var pipe = new Trooba()
+        .use(function echo(pipe) {
+            var stream;
+            pipe.on('request', (request, next) => {
+                stream = new TroobaWritableStream(pipe.streamResponse(request));
+                stream.write('foo');
+                setTimeout(function () {
+                    stream.emit('error', new Error('Test error'));
                 }, 50);
                 next();
             });
