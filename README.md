@@ -1,8 +1,8 @@
 # trooba-streaming
 
 [![codecov](https://codecov.io/gh/trooba/trooba-streaming/branch/master/graph/badge.svg)](https://codecov.io/gh/trooba/trooba-streaming)
-[![Build Status](https://travis-ci.org/trooba/trooba-streaming.svg?branch=master)](https://travis-ci.org/trooba/trooba-streaming) [![NPM](https://img.shields.io/npm/v/-streaming.svg)](https://www.npmjs.com/package/-streaming)
-[![Downloads](https://img.shields.io/npm/dm/-streaming.svg)](http://npm-stat.com/charts.html?package=trooba-streaming)
+[![Build Status](https://travis-ci.org/trooba/trooba-streaming.svg?branch=master)](https://travis-ci.org/trooba/trooba-streaming) [![NPM](https://img.shields.io/npm/v/trooba-streaming.svg)](https://www.npmjs.com/package/trooba-streaming)
+[![Downloads](https://img.shields.io/npm/dm/trooba-streaming.svg)](http://npm-stat.com/charts.html?package=trooba-streaming)
 [![Known Vulnerabilities](https://snyk.io/test/github/trooba/trooba-streaming/badge.svg)](https://snyk.io/test/github/trooba/trooba-streaming)
 
 [Trooba](https://github.com/trooba/trooba) framework being isomorphic does not use nodejs native streaming.
