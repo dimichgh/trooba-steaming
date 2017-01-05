@@ -408,6 +408,8 @@ describe(__filename, function () {
             });
             pipe.on('request:data', (data, next) => {
                 stream.write(data);
+                // should allow mistakes of using multiple action that do resume
+                next();
                 next();
             });
         })
