@@ -1,5 +1,6 @@
 'use strict';
 
+const Assert = require('assert');
 const NodeUtils = require('util');
 const stream = require('stream');
 
@@ -67,9 +68,7 @@ function hookPipeEventsToStream(pipeStream, stream) {
 function _initRead(pipeStream) {
     var onData = (data, next) => {
         if (this._paused) {
-            if (this._pausedData) {
-                throw new Error('Atempt to use buffer that has already been taken. Make sure there are no multiple calls that do resume in the pipe');
-            }
+            Assert.ok(this._pausedData, 'Atempt to use buffer that has already been taken. Make sure there are no multiple calls that do resume in the pipe');
             debug('# delay response data', data);
             this._pausedData = {
                 data: data,
