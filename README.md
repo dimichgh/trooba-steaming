@@ -1,5 +1,7 @@
 # trooba-streaming
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/trooba/trooba-streaming.svg)](https://greenkeeper.io/)
+
 [![codecov](https://codecov.io/gh/trooba/trooba-streaming/branch/master/graph/badge.svg)](https://codecov.io/gh/trooba/trooba-streaming)
 [![Build Status](https://travis-ci.org/trooba/trooba-streaming.svg?branch=master)](https://travis-ci.org/trooba/trooba-streaming) [![NPM](https://img.shields.io/npm/v/trooba-streaming.svg)](https://www.npmjs.com/package/trooba-streaming)
 [![Downloads](https://img.shields.io/npm/dm/trooba-streaming.svg)](http://npm-stat.com/charts.html?package=trooba-streaming)
