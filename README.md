@@ -30,6 +30,7 @@ npm install trooba-streaming --save
 ### request/stream use-case
 ```js
 var Trooba = require('trooba');
+var TroobaWritableStream = require('trooba-streaming').TroobaWritableStream;
 
 var pipe = new Trooba();
 pipe.use(function echo(pipe) {
@@ -70,6 +71,7 @@ stream
 ### stream/response use-case
 ```js
 var Trooba = require('trooba');
+var TroobaWritableStream = require('trooba-streaming').TroobaReadableStream;
 
 var pipe = new Trooba()
 .use(function echo(pipe) {
@@ -104,6 +106,7 @@ stream.end();
 ### stream/stream use-case
 ```js
 var Trooba = require('trooba');
+var TroobaDuplexStream = require('trooba-streaming').TroobaDuplexStream;
 
 var pipe = new Trooba()
 .use(function echo(pipe) {
