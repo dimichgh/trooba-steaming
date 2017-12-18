@@ -26,5 +26,8 @@
     "mocha": "^4.0.0",
     "nock": "^9.0.2",
     "trooba": "^2"
+  },
+  "publishConfig": {
+    "registry": "http://registry.npmjs.org"
   }
 }
