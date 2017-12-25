@@ -1,6 +1,7 @@
 'use strict';
 
 var Assert = require('assert');
+var streaming = require('..');
 var TroobaWritableStream = require('..').TroobaWritableStream;
 var TroobaReadableStream = require('..').TroobaReadableStream;
 var TroobaDuplexStream = require('..').TroobaDuplexStream;
@@ -11,15 +12,16 @@ describe(__filename, function () {
         var Trooba = require('trooba');
 
         var pipe = new Trooba()
+        .use(streaming)
         .use(function echo(pipe) {
             var response = [];
             pipe.on('request', (request, next) => {
                 next();
             });
             pipe.on('request:data', (data, next) => {
-                setImmediate(next);
                 if (data) {
                     response.push(data);
+                    next();
                     return;
                 }
                 pipe.respond(response);
@@ -27,7 +29,7 @@ describe(__filename, function () {
         })
         .build();
 
-        var stream = new TroobaWritableStream(pipe.create().streamRequest('r1'));
+        var stream = new TroobaWritableStream(pipe.create().request('r1'));
 
         stream
         .on('error', err => {
@@ -47,6 +49,7 @@ describe(__filename, function () {
         var Trooba = require('trooba');
 
         var pipe = new Trooba()
+        .use(streaming)
         .use(function echo(pipe) {
             pipe.on('request', (request, next) => {
                 var response = [];
@@ -64,7 +67,7 @@ describe(__filename, function () {
         })
         .build();
 
-        var request = pipe.create().streamRequest('r1');
+        var request = pipe.create().request('r1');
         var stream = new TroobaWritableStream(request);
 
         stream.on('response', response => {
@@ -80,10 +83,11 @@ describe(__filename, function () {
         var Trooba = require('trooba');
 
         var pipe = new Trooba()
+        .use(streaming)
         .use(function echo(pipe) {
             var stream;
             pipe.on('request', (request, next) => {
-                stream = new TroobaWritableStream(pipe.streamResponse(request));
+                stream = new TroobaWritableStream(pipe.respond(request));
                 stream.write('foo');
                 stream.write('bar');
                 stream.end();
@@ -107,19 +111,17 @@ describe(__filename, function () {
         });
     });
 
-    it('should do request/stream flow with stream reader', function (done) {
+    it('should do response stream with stream reader', function (done) {
         var Trooba = require('trooba');
 
         var pipe = new Trooba()
+        .use(streaming)
         .use(function echo(pipe) {
-            var stream;
-            pipe.on('request', (request, next) => {
-                stream = new TroobaWritableStream(pipe.streamResponse(request));
+            pipe.on('request', request => {
+                var stream = new TroobaWritableStream(pipe.respond(request));
                 stream.write('foo');
                 stream.write('bar');
                 stream.end();
-
-                next();
             });
         })
         .build();
@@ -127,7 +129,8 @@ describe(__filename, function () {
         var order = [];
         var stream = new TroobaReadableStream(pipe.create().request('r1'));
 
-        stream.on('error', done)
+        stream
+        .on('error', done)
         .on('data', data => {
             if (data) {
                 order.push(data);
@@ -144,9 +147,10 @@ describe(__filename, function () {
         var Trooba = require('trooba');
 
         var pipe = new Trooba()
+        .use(streaming)
         .use(function echo(pipe) {
             pipe.on('request', (request, next) => {
-                var stream = new TroobaDuplexStream(pipe.streamResponse(request))
+                var stream = new TroobaDuplexStream(pipe.respond(request))
                 .on('data', data => {
                     stream.write(data);
                 })
@@ -161,7 +165,7 @@ describe(__filename, function () {
 
         var order = [];
 
-        var stream = new TroobaWritableStream(pipe.create().streamRequest('r1'));
+        var stream = new TroobaWritableStream(pipe.create().request('r1'));
 
         stream
         .on('error', done)
@@ -183,10 +187,11 @@ describe(__filename, function () {
         var Trooba = require('trooba');
 
         var pipe = new Trooba()
+        .use(streaming)
         .use(function echo(pipe) {
             var stream;
             pipe.on('request', (request, next) => {
-                stream = new TroobaWritableStream(pipe.streamResponse(request));
+                stream = new TroobaWritableStream(pipe.respond(request));
                 next();
             });
             pipe.on('request:data', (data, next) => {
@@ -198,7 +203,7 @@ describe(__filename, function () {
 
         var order = [];
 
-        var stream = new TroobaDuplexStream(pipe.create().streamRequest('r1'));
+        var stream = new TroobaDuplexStream(pipe.create().request('r1'));
 
         stream
         .on('error', done)
@@ -222,6 +227,7 @@ describe(__filename, function () {
         var Trooba = require('trooba');
 
         var pipe = new Trooba()
+        .use(streaming)
         .use(function echo(pipe) {
             pipe.on('request', (request, next) => {
                 pipe.throw(new Error('Test error'));
@@ -229,7 +235,7 @@ describe(__filename, function () {
         })
         .build();
 
-        var stream = new TroobaWritableStream(pipe.create().streamRequest('r1'));
+        var stream = new TroobaWritableStream(pipe.create().request('r1'));
 
         stream
         .on('error', err => {
@@ -249,6 +255,7 @@ describe(__filename, function () {
         var Trooba = require('trooba');
 
         var pipe = new Trooba()
+        .use(streaming)
         .use(function echo(pipe) {
             pipe.on('request:data', (data, next) => {
                 setImmediate(next);
@@ -260,7 +267,7 @@ describe(__filename, function () {
         })
         .build();
 
-        var stream = new TroobaWritableStream(pipe.create().streamRequest('r1'));
+        var stream = new TroobaWritableStream(pipe.create().request('r1'));
 
         stream
         .on('error', err => {
@@ -280,10 +287,11 @@ describe(__filename, function () {
         var Trooba = require('trooba');
 
         var pipe = new Trooba()
+        .use(streaming)
         .use(function echo(pipe) {
             var stream;
             pipe.on('request', (request, next) => {
-                stream = new TroobaWritableStream(pipe.streamResponse(request));
+                stream = new TroobaWritableStream(pipe.respond(request));
                 stream.write('foo');
                 setTimeout(function () {
                     pipe.throw(new Error('Test error'));
@@ -316,10 +324,11 @@ describe(__filename, function () {
         var Trooba = require('trooba');
 
         var pipe = new Trooba()
+        .use(streaming)
         .use(function echo(pipe) {
             var stream;
             pipe.on('request', (request, next) => {
-                stream = new TroobaWritableStream(pipe.streamResponse(request));
+                stream = new TroobaWritableStream(pipe.respond(request));
                 stream.write('foo');
                 setTimeout(function () {
                     stream.emit('error', new Error('Test error'));
@@ -353,10 +362,11 @@ describe(__filename, function () {
         var count = 0;
 
         var pipe = new Trooba()
+        .use(streaming)
         .use(function echo(pipe) {
             var stream;
             pipe.on('request', (request, next) => {
-                stream = new TroobaWritableStream(pipe.streamResponse(request));
+                stream = new TroobaWritableStream(pipe.respond(request));
                 next();
             });
             pipe.on('request:data', (data, next) => {
@@ -376,7 +386,7 @@ describe(__filename, function () {
 
         var order = [];
 
-        var stream = new TroobaDuplexStream(pipe.create().streamRequest('r1'));
+        var stream = new TroobaDuplexStream(pipe.create().request('r1'));
 
         stream
         .on('error', err => {
@@ -400,10 +410,11 @@ describe(__filename, function () {
         var Trooba = require('trooba');
 
         var pipe = new Trooba()
+        .use(streaming)
         .use(function echo(pipe) {
             var stream;
             pipe.on('request', (request, next) => {
-                stream = new TroobaWritableStream(pipe.streamResponse(request));
+                stream = new TroobaWritableStream(pipe.respond(request));
                 next();
             });
             pipe.on('request:data', (data, next) => {
@@ -417,7 +428,7 @@ describe(__filename, function () {
 
         var order = [];
 
-        var stream = new TroobaDuplexStream(pipe.create().streamRequest('r1'));
+        var stream = new TroobaDuplexStream(pipe.create().request('r1'));
 
         stream
         .on('error', done);

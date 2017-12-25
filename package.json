@@ -1,6 +1,6 @@
 {
   "name": "trooba-streaming",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "nodejs streaming wrappers/helper for trooba pipeline",
   "main": "index.js",
   "scripts": {
@@ -25,6 +25,10 @@
     "istanbul": "^0.4.5",
     "mocha": "^4.0.0",
     "nock": "^9.0.2",
-    "trooba": "^2"
+    "trooba": "file:../trooba"
+  },
+  "dependencies": {
+    "trooba-plugin": "file:../trooba-plugin/",
+    "trooba-request-response": "file:../trooba-request-response"
   }
 }

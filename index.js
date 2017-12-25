@@ -3,11 +3,16 @@
 const Assert = require('assert');
 const NodeUtils = require('util');
 const stream = require('stream');
+const plugin = require('trooba-plugin');
+const request = require('trooba-request-response');
 
 const Readable = stream.Readable;
 const Writable = stream.Writable;
 const Duplex = stream.Duplex;
 
+module.exports = plugin(request, {
+    troobaVersion: '^3'
+});
 /**
  * A stream that the client can write to. It will buffer data till it is ready
  */
@@ -23,21 +28,21 @@ NodeUtils.inherits(TroobaWritableStream, Writable);
 
 function _initWrite(pipeStream) {
     /*jshint validthis:true */
-    this._requestStream = pipeStream;
+    this._stream = pipeStream;
     this.once('finish', () => {
-        this._requestStream.end();
+        this._stream.end();
     });
 
-    if (pipeStream.flow === 2) { // RESPONSE flow
+    if (pipeStream.direction === 2) { // RESPONSE flow
         this.on('error', err => {
-            (pipeStream.point || pipeStream).throw(err);
+            pipeStream.point.throw(err);
         });
     }
 }
 
 function _write(message, encoding, callback) {
     /*jshint validthis:true */
-    this._requestStream.write(message);
+    this._stream.write(message);
     callback();
 }
 
@@ -59,9 +64,9 @@ module.exports.TroobaReadableStream = TroobaReadableStream;
 NodeUtils.inherits(TroobaReadableStream, Readable);
 
 function hookPipeEventsToStream(pipeStream, stream) {
-    pipeStream.on('*', (message, next) => {
-        stream.emit(message.type, message.ref);
-        next && next();
+    pipeStream.on('*', function (message) {
+        stream.emit(message.type, message.data);
+        message.next();
     });
 }
 
