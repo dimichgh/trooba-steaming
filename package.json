@@ -21,7 +21,7 @@
   "author": "Dmytro Semenov <dimichsdg@yahoo.com>",
   "license": "MIT",
   "devDependencies": {
-    "async": "^2.1.4",
+    "async": "^3.1.0",
     "istanbul": "^0.4.5",
     "mocha": "^5.0.0",
     "nock": "^9.0.2",
