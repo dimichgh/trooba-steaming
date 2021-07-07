@@ -34,16 +34,12 @@ var TroobaWritableStream = require('trooba-streaming').TroobaWritableStream;
 
 var pipe = new Trooba();
 pipe.use(function echo(pipe) {
-    var _request;
     var streamResponse;
     pipe.on('request', request => {
-        _request = request;
         streamResponse = new TroobaWritableStream(pipe.streamResponse({
             statusCode: 200
         }));
-    });
-    pipe.on('request:data', data => {
-        _request.forEach(data => {
+        request.forEach(data => {
             streamResponse.write(data);
         });
         streamResponse.end();
